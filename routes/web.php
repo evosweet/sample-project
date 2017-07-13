@@ -22,6 +22,6 @@ Route::get('/', 'PagesController@index');
 //test route
 Route::get('test', 'TestController@index');
 
-Route::resource('widget', 'WidgetController');
-
-//Route::get('/home', 'HomeController@index')->name('home');
+Route::get('widget/create', 'WidgetController@create')->name('widget.create');
+Route::get('widget/{id}-{slug?}', 'WidgetController@show')->name('widget.show');
+Route::resource('widget', 'WidgetController', ['except'=>['show','create']]);

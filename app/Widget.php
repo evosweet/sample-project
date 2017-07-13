@@ -2,10 +2,23 @@
 
 namespace App;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasModelTrait;
+//use Illuminate\Database\Eloquent\Model;
+//use Carbon\Carbon;
 
-class Widget extends Model
+class Widget extends SuperModel
 {
     //
-    protected $fillable = ['name'];
+    //use HasModelTrait;
+
+    protected $fillable = ['name','slug','user_id'];
+
+    public function user(){
+        return $this->belongsTo('App\User');
+    }
+
+    // public function getCreatedAtAttribute($value){
+    //     return Carbon::parse($value)->format('m-d-Y');
+    // }
 }
+

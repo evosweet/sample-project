@@ -5,9 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Widget;
 use Redirect;
+use Illuminate\Support\Facades\Auth;
 
 class WidgetController extends Controller
 {
+    public function __construct(){
+        $this->middleware('auth',['except'=>['index','show']]);
+    }
+    
     /**
      * Display a listing of the resource.
      *
@@ -27,7 +32,6 @@ class WidgetController extends Controller
      */
     public function create()
     {
-        $slug = str_slug($request->name, "-");
         return view('widget.create');
     }
 
@@ -44,7 +48,15 @@ class WidgetController extends Controller
             'name' => 'required|unique:widgets|string|max:30',
         ]);
 
-        $widget = Widget::create(['name' => $request->name]);
+        $slug = str_slug($request->name, "-");   
+
+        $widget = Widget::create(
+            [
+            'name' => $request->name, 
+            'slug' => $slug,
+            'user_id' => Auth::id() 
+            ]
+        );
 
         $widget->save();
 
@@ -59,9 +71,20 @@ class WidgetController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($id, $slug = '')
     {
         //
+        $widget = Widget::findOrFail($id);
+        if($widget->slug !== $slug){
+            return Redirect::route('widget.show',
+                [
+                    'id' => $widget->id,
+                    'slug' => $widget->slug
+                ], 301);
+            dd($widget);
+        }
+        return view('widget.show', compact('widget'));
+
     }
 
     /**
@@ -73,6 +96,8 @@ class WidgetController extends Controller
     public function edit($id)
     {
         //
+        $widget = Widget::findOrFail($id);
+        return view('widget.edit', compact('widget'));
     }
 
     /**
@@ -82,9 +107,28 @@ class WidgetController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request,Widget $widget)
     {
         //
+         $this->validate($request, [
+            'name' => 'required|string|max:40|unique:widgets,name,' .$widget->id
+        ]);
+
+        $slug = str_slug($request->name, "-");
+
+        $widget = Widget::findOrFail($id);
+
+        $widget->update(
+            [
+                'name' => $request->name,
+                'slug' => $slug,
+                'user_id' => Auth::id()
+            ]
+        );
+        alert()->success('Congrats!', 'You updated a widget');
+        return Redirect::route('widget.show',[
+            'widget' => $widget, 'slug' => $slug
+        ]);   
     }
 
     /**
@@ -96,5 +140,8 @@ class WidgetController extends Controller
     public function destroy($id)
     {
         //
+        Widget::destroy($id);
+        alert()->overlay('Attention', 'You deleted a widget', 'error');
+        return Redirect::route('widget.index');
     }
 }
