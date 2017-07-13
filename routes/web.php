@@ -15,10 +15,13 @@
 //     return view('welcome');
 // });
 
+Auth::routes();
+
 Route::get('/', 'PagesController@index');
 
 //test route
 Route::get('test', 'TestController@index');
-Auth::routes();
+
+Route::resource('widget', 'WidgetController');
 
 //Route::get('/home', 'HomeController@index')->name('home');
